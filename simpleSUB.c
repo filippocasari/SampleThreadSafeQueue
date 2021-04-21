@@ -1,5 +1,7 @@
 
 #include <czmq.h>
+#define NUM_SUB 2
+
 
 static void
 subscriber_thread(zsock_t *pipe, void *args) {
@@ -33,9 +35,16 @@ subscriber_thread(zsock_t *pipe, void *args) {
 
 
 int main() {
-    zactor_t *sub_actor = zactor_new(subscriber_thread, NULL);
 
-    zactor_destroy(&sub_actor);
+
+    zactor_t *sub_threads[NUM_SUB];
+    for(int i=0; i<NUM_SUB; i++){
+        sub_threads[i]=zactor_new(subscriber_thread, NULL);
+    }
+    for(int i=0; i<NUM_SUB;i++){
+        zactor_destroy(&sub_threads[i]);
+    }
+
     return 0;
 }
 
