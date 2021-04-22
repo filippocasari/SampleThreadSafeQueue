@@ -19,17 +19,23 @@ publisher_thread(zsock_t *pipe, void *args) {
     /*void *publisher = zsock_new (ZMQ_PUB);
     zsock_bind (publisher, "tcp://127.0.0.1:6000");
     */
+    int count=0;
     puts("pub connected");
-    while (!zctx_interrupted) {
-        char string[10];
-        sprintf(string, "%c-%05d", randof (10) + 'A', randof (100000));
-        //printf("String: %s\n", string);
+    while (!zctx_interrupted || count<10) {
+        /*char string[10];
+        sprintf(string, "%c-%05d", randof (10) + 'A', randof (100000));*/
+        char string[12];
+        long timestamp = zclock_usecs();
+        printf("TIMESTAMP: %ld\n", timestamp);
         zmsg_t *msg = zmsg_new();
+        sprintf(string, "%ld", timestamp);
         int rc = zmsg_pushstr(msg, string);
         assert(rc == 0);
-        if (zsock_send(pub, "sss", "ENGINE", "MESSAGE PART", string) == -1)
+
+        if (zsock_send(pub, "sss", "ENGINE", "TIMESTAMP", string) == -1)
             break;              //  Interrupted
-        zclock_sleep(100);     //  Wait for 1/10th second
+        zclock_sleep(2000);//  Wait for x seconds
+        count++;
     }
     zsock_destroy(&pub);
 }
