@@ -1,29 +1,24 @@
 
-
 //  Espresso Pattern
 //  This shows how to capture data using a pub-sub proxy
 
 #include <czmq.h>
 
-//  The subscriber thread requests messages starting with
-//  A and B, then reads and counts incoming messages.
+const char *endpoint_tcp = "tcp://127.0.0.1:6000";
+const char *endpoint_inproc = "inproc://example";
+#define ENDPOINT endpoint_tcp
 
-
-
-//  .split publisher thread
-//  The publisher sends random messages starting with A-J:
 
 static void
 publisher_thread(zsock_t *pipe, void *args) {
-    zsock_t *pub = zsock_new_pub("tcp://127.0.0.1:6000");
+    zsock_t *pub = zsock_new_pub(ENDPOINT);
     /*void *publisher = zsock_new (ZMQ_PUB);
     zsock_bind (publisher, "tcp://127.0.0.1:6000");
     */
-    int count=0;
+    int count = 0;
     puts("pub connected");
-    while (!zctx_interrupted || count<10) {
-        /*char string[10];
-        sprintf(string, "%c-%05d", randof (10) + 'A', randof (100000));*/
+    while (!zctx_interrupted || count < 10) {
+
         char string[12];
         long timestamp = zclock_usecs();
         printf("TIMESTAMP: %ld\n", timestamp);
@@ -39,27 +34,6 @@ publisher_thread(zsock_t *pipe, void *args) {
     }
     zsock_destroy(&pub);
 }
-
-//  .split listener thread
-//  The listener receives all messages flowing through the proxy, on its
-//  pipe. In CZMQ, the pipe is a pair of ZMQ_PAIR sockets that connect
-//  attached child threads. In other languages your mileage may vary:
-
-static void
-listener_thread(zsock_t *pipe, void *args) {
-    //  Print everything that arrives on pipe
-    while (true) {
-        zframe_t *frame = zframe_recv(pipe);
-        if (!frame)
-            break;              //  Interrupted
-        zframe_print(frame, NULL);
-        zframe_destroy(&frame);
-    }
-}
-
-//  .split main thread
-//  The main task starts the subscriber and publisher, and then sets
-//  itself up as a listening proxy. The listener runs as a child thread:
 
 int main(void) {
     //  Start child threads

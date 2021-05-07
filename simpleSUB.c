@@ -2,6 +2,9 @@
 #include <czmq.h>
 
 #define NUM_SUB 2
+const char *endpoint_tcp = "tcp://127.0.0.1:6000";
+const char *endpoint_inproc = "inproc://example";
+#define ENDPOINT endpoint_tcp
 
 
 static void
@@ -33,12 +36,12 @@ subscriber_thread(zsock_t *pipe, void *args) {
 
             frame = zmsg_popstr(msg);
             if (strcmp(frame, "TIMESTAMP") == 0) {
-                free(frame);
+
                 frame = zmsg_popstr(msg);
                 zsys_info("> %s", frame);
-                end = (long) zclock_usecs();
+                end = zclock_usecs();
                 start = strtol(frame, &end_pointer_string, 10);
-                end_to_end_delay = end - start-(1000*2000);
+                end_to_end_delay = end - start;
                 printf("END TO END DELAY : %ld [micro secs]\n", end_to_end_delay);
 
                 break;
@@ -62,11 +65,12 @@ int main() {
     zactor_t *sub_threads[NUM_SUB];
     zsock_t *subscribers[NUM_SUB];
     for (int i = 0; i < NUM_SUB; i++) {
-        subscribers[i]= zsock_new_sub("tcp://127.0.0.1:6000", "ENGINE");
+        subscribers[i]= zsock_new_sub(ENDPOINT, "ENGINE");
         char name[9];
         sprintf(name, "%s-%d", "ENGINE", i);
         printf("Starting new sub thread : %s\n", name);
         sub_threads[i] = zactor_new(subscriber_thread, subscribers[i]);
+
 
     }
 
