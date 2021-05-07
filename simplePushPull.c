@@ -1,9 +1,9 @@
 #include <czmq.h>
 
 
-const char *endpoint_tcp= "tcp://127.0.0.1:5000"
+const char *endpoint_tcp= "tcp://127.0.0.1:5000";
 
-const char *endpoint_inproc= "inproc://example"
+const char *endpoint_inproc= "inproc://example";
 
 #define ENDPOINT endpoint_inproc
 
