@@ -13,13 +13,13 @@ const char *endpoint_inproc = "inproc://example";
 static void
 publisher_thread(zsock_t *pipe, void *args) {
 
-    const char *string_json_path="/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parametersPUB.json";
-
+    const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parametersPUB.json";
     json_object *PARAM;
 
-    const char *payload_size="10";
-    const char *num_mex="10";
-
+    int payload_size = 10;
+    int num_mex = 10;
+    const char *topic;
+    int msg_rate_sec = 1;
     PARAM = json_object_from_file(string_json_path);
     zsock_t *pub;
     if (PARAM != NULL) {
@@ -28,12 +28,26 @@ publisher_thread(zsock_t *pipe, void *args) {
         const char *port;
         const char *ip;
         const char *output_file;
+        int int_value;
 
+        const char *value;
         json_object_object_foreach(PARAM, key, val) {
-            const char *value = json_object_get_string(val);
+            if (json_object_is_type(val, json_type_int)) {
+                int_value = (int) json_object_get_int64(val);
+                if (strcmp(key, "number_of_messages") == 0)
+                    num_mex = int_value;
+                if (strcmp(key, "payload_size_bytes") == 0)
+                    payload_size = int_value;
+                if (strcmp(key, "msg_rate_sec") == 0) {
+                    msg_rate_sec = int_value;
+                }
+            } else {
+                value = json_object_get_string(val);
+            }
+
 
             printf("\t%s: %s\n", key, json_object_to_json_string(val));
-            if (strcmp(key, "connection type") == 0) {
+            if (strcmp(key, "connection_type") == 0) {
                 type_connection = value;
                 printf("connection type found: %s\n", type_connection);
 
@@ -41,28 +55,20 @@ publisher_thread(zsock_t *pipe, void *args) {
             if (strcmp(key, "ip") == 0) {
 
                 ip = value;
-                printf("ip found: %s\n",ip);
+                printf("ip found: %s\n", ip);
 
             }
             if (strcmp(key, "port") == 0) {
                 port = value;
-                printf("port found: %s\n",port);
+                printf("port found: %s\n", port);
             }
             if (strcmp(key, "metric output file") == 0) {
-
                 output_file = value;
-                printf("output file found: %s\n",output_file);
+                printf("output file found: %s\n", output_file);
             }
-            if(strcmp(key, "payload size")==0){
-                payload_size=value;
-
+            if (strcmp(key, "topic") == 0) {
+                topic = value;
             }
-            if(strcmp(key, "number of messages")==0){
-                num_mex=value;
-
-            }
-
-
         }
         char endpoint[30];
         char *endpoint_customized = strcat(endpoint, type_connection);
@@ -88,14 +94,18 @@ publisher_thread(zsock_t *pipe, void *args) {
     */
     int count = 0;
     puts("pub connected");
-    long max_mex;
-    long size_of_payload;
-    size_of_payload= strtol(payload_size, NULL, 10);
-    max_mex=strtol(num_mex, NULL, 10);
 
-    while (!zctx_interrupted || count < max_mex) {
-        //metrica errori, message size,
-        char string[11];
+
+    //size_of_payload = (int) strtol(payload_size, NULL, 10);
+    //max_mex = strtol(num_mex, NULL, 10);
+
+    printf("PAYLOAD SIZE: %d\n", payload_size);
+    while (!zctx_interrupted && count < num_mex) {
+        long double milli_secs_of_sleeping= (1.0/msg_rate_sec)*1000;
+
+        zclock_sleep((int) milli_secs_of_sleeping); //  Wait for x seconds
+        char string[12];
+        char string_residual_payload[(payload_size - strlen(string))];
 
         long timestamp = zclock_usecs();
         printf("TIMESTAMP: %ld\n", timestamp);
@@ -104,9 +114,17 @@ publisher_thread(zsock_t *pipe, void *args) {
         int rc = zmsg_pushstr(msg, string);
         assert(rc == 0);
 
-        if (zsock_send(pub, "sss", "ENGINE", "TIMESTAMP", string) == -1)
+        for (int i = 0; i < (payload_size - strlen(string)); i++) {
+            string_residual_payload[i] = '0';
+        }
+        string_residual_payload[payload_size] = '\0';
+        printf("String of zeros: %s\n", string_residual_payload);
+        assert(rc == 0);
+        rc = zmsg_addstr(msg, string_residual_payload);
+
+        if (zsock_send(pub, "ssss", topic, "TIMESTAMP", string, string_residual_payload) == -1)
             break;              //  Interrupted
-        zclock_sleep(2000);//  Wait for x seconds
+        zclock_log("Message No. %d", count);
         count++;
     }
     zsock_destroy(&pub);

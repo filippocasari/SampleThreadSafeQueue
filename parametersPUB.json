@@ -1,14 +1,14 @@
 {
-  "Message Rate": 1 ,
-  "Number of messages": 10,
-
-  "connection type": "tcp",
-  "payload size": 25,
-
+  "msg_rate_sec": 2,
+  "number_of_messages": 10,
+  "topic": "FRIDGE",
+  "connection_type": "tcp",
+  "payload_size_bytes": 25,
   "ip": "127.0.0.1",
   "port": "6000",
-  "metrics output file": "console",
-  "experiment name": "test 0_1"
+  "metrics_output_type": "console",
+  "experiment_name": "test 0_1",
+  "num_of_subs": 2
 
 
 }
