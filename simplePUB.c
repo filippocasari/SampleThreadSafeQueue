@@ -3,6 +3,7 @@
 //  This shows how to capture data using a pub-sub proxy
 
 #include <czmq.h>
+#include <json-c/json.h>
 
 const char *endpoint_tcp = "tcp://127.0.0.1:6000";
 const char *endpoint_inproc = "inproc://example";
@@ -11,6 +12,19 @@ const char *endpoint_inproc = "inproc://example";
 
 static void
 publisher_thread(zsock_t *pipe, void *args) {
+
+    char *string_json_parameters;
+    json_object *PARAM;
+
+    PARAM = json_object_from_file("C:\\Users\\utente\\CLionProjects\\SampleThreadSafeQueue2\\parametersPUB.json");
+    if(PARAM!=NULL){
+        puts("PARAMETERS PUBLISHER: ");
+        json_object_object_foreach(PARAM, key, val) {
+            printf("\t%s: %s\n", key, json_object_to_json_string(val));
+        }
+    }
+
+
     zsock_t *pub = zsock_new_pub(ENDPOINT);
     /*void *publisher = zsock_new (ZMQ_PUB);
     zsock_bind (publisher, "tcp://127.0.0.1:6000");
