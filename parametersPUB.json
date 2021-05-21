@@ -1,12 +1,14 @@
 {
   "Message Rate": 1 ,
+  "Number of messages": 10,
+
   "connection type": "tcp",
-  "payload size": 75,
-  "connection info": {
-    "ip": "127.0.0.1",
-    "port": "6000"
-  },
+  "payload size": 25,
+
+  "ip": "127.0.0.1",
+  "port": "6000",
   "metrics output file": "console",
   "experiment name": "test 0_1"
+
 
 }

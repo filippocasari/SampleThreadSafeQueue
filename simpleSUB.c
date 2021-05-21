@@ -1,7 +1,7 @@
 
 #include <czmq.h>
 
-#define NUM_SUB 2
+#define NUM_SUB 5
 const char *endpoint_tcp = "tcp://127.0.0.1:6000";
 const char *endpoint_inproc = "inproc://example";
 #define ENDPOINT endpoint_tcp
