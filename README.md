@@ -10,11 +10,11 @@
 
 ###PUBLISHER
 -It takes a specific configuration from a json file called "parameters.json" ,
-and push, on a specific topic, 12 bytes for the timestamp plus 
-the rest of the bytes (=bytes of config - bytes of timestamp)
+and pushes, on a specific topic, 12 bytes for the timestamp plus 
+the rest of the bytes (= bytes of config - bytes of timestamp)
 
 -It can work with a tcp or inproc connection.
 
 
--It will stop when the count is equal to the size of messages set by the json config file.
+-It will stop when the count is equal to the amount of messages (set by the json config file).
 
