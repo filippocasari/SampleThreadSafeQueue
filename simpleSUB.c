@@ -75,7 +75,7 @@ int main() {
 
 
 
-    const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parametersPUB.json";
+    const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parameters.json";
     json_object *PARAM;
 
     char *endpoint_customized;
