@@ -4,6 +4,7 @@
 
 #include <czmq.h>
 #include <json-c/json.h>
+#include <math.h>
 //default endpoint
 const char *endpoint_tcp = "tcp://127.0.0.1:6000";
 const char *endpoint_inproc = "inproc://example";
@@ -78,7 +79,7 @@ publisher_thread(zsock_t *pipe, void *args) {
         char *endpoint_customized = strcat(endpoint, type_connection);
         endpoint_customized = strcat(endpoint_customized, "://");
         endpoint_customized = strcat(endpoint_customized, ip);
-        //only for tcp, not for inprocess connection
+        //only for tcp, not for in process connection
         if (strcmp(type_connection, "tcp") == 0)
         {
             endpoint_customized = strcat(endpoint_customized, ":");
@@ -107,15 +108,19 @@ publisher_thread(zsock_t *pipe, void *args) {
 
     printf("PAYLOAD SIZE: %d\n", payload_size);
     while (!zctx_interrupted && count < num_mex) {
-        long double milli_secs_of_sleeping = (1.0 / msg_rate_sec) * 1000;
 
+        long double milli_secs_of_sleeping = (1.0 / msg_rate_sec) * 1000;
         zclock_sleep((int) milli_secs_of_sleeping); //  Wait for x seconds
-        char string[12];
-        char string_residual_payload[(payload_size - strlen(string))];
-        long timestamp = zclock_usecs();
+
+        char *string; // 12 byte for representation of timestamp in micro secs
+        long timestamp = zclock_usecs(); // catching timestamp
+        int nDigits = floor(1+ log10(abs((int) timestamp)));
+        string = (char *) malloc((nDigits+1)*sizeof(char));
+
         printf("TIMESTAMP: %ld\n", timestamp);
-        zmsg_t *msg = zmsg_new();
-        sprintf(string, "%ld", timestamp);
+        char string_residual_payload[(payload_size - strlen(string))]; // string of zeros to complete payload sent
+        zmsg_t *msg = zmsg_new(); // creating new zmq message
+        sprintf(string, "%ld", timestamp); // fresh copy into the string
         int rc = zmsg_pushstr(msg, string);
         assert(rc == 0);
 
@@ -130,6 +135,7 @@ publisher_thread(zsock_t *pipe, void *args) {
         if (zsock_send(pub, "ssss", topic, "TIMESTAMP", string, string_residual_payload) == -1)
             break;              //  Interrupted
         zclock_log("Message No. %d", count);
+        free(string);
         count++;
     }
     zsock_destroy(&pub);
