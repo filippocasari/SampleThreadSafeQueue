@@ -7,7 +7,7 @@
 #include <math.h>
 //default endpoint
 const char *endpoint_tcp = "tcp://127.0.0.1:6000";
-const char *endpoint_inproc = "inproc://example";
+const char *endpoint_inprocess = "inproc://example";
 
 #define ENDPOINT endpoint_tcp // it can be set by the developer
 
@@ -15,13 +15,14 @@ const char *endpoint_inproc = "inproc://example";
 static void
 publisher_thread(zsock_t *pipe, void *args) {
     //path of json file for configuration
-    const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parametersPUB.json";
+    const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parameters.json";
     //json obj for deserialization
     json_object *PARAM;
 
     int payload_size = 10; //payload, 10 default bytes
     int num_mex = 10; // maximum messages for the publisher, 10 default
     const char *topic; // name of the topic
+    const char *endpoint_inproc;
     int msg_rate_sec = 1; //message rate, mex/sec
     PARAM = json_object_from_file(string_json_path); // deserializing file
     zsock_t *pub; // new sock pub
@@ -72,18 +73,26 @@ publisher_thread(zsock_t *pipe, void *args) {
             if (strcmp(key, "topic") == 0) {
                 topic = value;
             }
+            if(strcmp(key, "endpoint_inproc") == 0) {
+                    endpoint_inproc = value;
+                }
         }
         // create a new endpoint composed of the items inside the json file
         char endpoint[30];
 
         char *endpoint_customized = strcat(endpoint, type_connection);
         endpoint_customized = strcat(endpoint_customized, "://");
-        endpoint_customized = strcat(endpoint_customized, ip);
+
         //only for tcp, not for in process connection
         if (strcmp(type_connection, "tcp") == 0)
         {
+            endpoint_customized = strcat(endpoint_customized, ip);
             endpoint_customized = strcat(endpoint_customized, ":");
             endpoint_customized = strcat(endpoint_customized, port);
+        }
+        else if(strcmp(type_connection, "inproc")==0)
+        {
+            endpoint_customized = strcat(endpoint_customized, endpoint_inproc);
         }
         printf("string for endpoint (from json file): %s\t", endpoint_customized);
 

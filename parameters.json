@@ -3,6 +3,7 @@
   "number_of_messages": 10,
   "topic": "FRIDGE",
   "connection_type": "tcp",
+  "endpoint_inproc": "example",
   "payload_size_bytes": 25,
   "ip": "127.0.0.1",
   "port": "6000",

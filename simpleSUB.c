@@ -5,7 +5,7 @@
 #define NUM_SUB 2
 #define MSECS_MAX_WAITING 10000
 const char *endpoint_tcp = "tcp://127.0.0.1:6000";
-const char *endpoint_inproc = "inproc://example";
+const char *endpoint_inprocess = "inproc://example";
 #define ENDPOINT endpoint_tcp
 
 
@@ -18,13 +18,13 @@ subscriber_thread(zsock_t *pipe, void *args) {
 
     //zsock_signal(pipe, 0);
 
-    zsock_t *sub =  args;
+    zsock_t *sub = args;
 
     //assert(sub);
     puts("sub connected");
 
     int count = 0;
-    long time_of_waiting=0;
+    long time_of_waiting = 0;
     while (!zctx_interrupted /*&& time_of_waiting<MSECS_MAX_WAITING*/) {
         char *topic;
         char *frame;
@@ -48,7 +48,7 @@ subscriber_thread(zsock_t *pipe, void *args) {
 
                 start = strtol(frame, &end_pointer_string, 10);
 
-                frame= zmsg_popstr(msg);
+                frame = zmsg_popstr(msg);
                 end = zclock_usecs();
                 zsys_info("PAYLOAD > %s", frame);
                 end_to_end_delay = end - start;
@@ -74,10 +74,9 @@ subscriber_thread(zsock_t *pipe, void *args) {
 int main() {
 
 
-
     const char *string_json_path = "/home/filippocasari/CLionProjects/SampleThreadSafeQueue/parameters.json";
     json_object *PARAM;
-
+    const char *endpoint_inproc;
     char *endpoint_customized;
     const char *topic;
     int num_of_subs;
@@ -132,21 +131,31 @@ int main() {
             }
             if (strcmp(key, "topic") == 0)
                 topic = value;
+            if (strcmp(key, "endpoint_inproc") == 0)
+                endpoint_inproc = value;
+
         }
         char endpoint[30] = "\0";
         endpoint_customized = strcat(endpoint, type_connection);
         endpoint_customized = strcat(endpoint_customized, "://");
-        endpoint_customized = strcat(endpoint_customized, ip);
-        endpoint_customized = strcat(endpoint_customized, ":");
-        endpoint_customized = strcat(endpoint_customized, port);
+        if (strcmp(type_connection, "tcp") == 0) {
+            endpoint_customized = strcat(endpoint_customized, ip);
+            endpoint_customized = strcat(endpoint_customized, ":");
+            endpoint_customized = strcat(endpoint_customized, port);
+        } else if (strcmp(type_connection, "inproc") == 0) {
+            endpoint_customized = strcat(endpoint_customized, endpoint_inproc);
+        }
+        //endpoint_customized = strcat(endpoint_customized, ip);
+        //endpoint_customized = strcat(endpoint_customized, ":");
+        //endpoint_customized = strcat(endpoint_customized, port);
         printf("string for endpoint (from json file): %s\t", endpoint_customized);
 
 
     }
 
 
-    if(PARAM==NULL)
-        num_of_subs=NUM_SUB;
+    if (PARAM == NULL)
+        num_of_subs = NUM_SUB;
     zactor_t *sub_threads[num_of_subs];
     zsock_t *subscribers[num_of_subs];
     for (int i = 0; i < num_of_subs; i++) {
