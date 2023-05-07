@@ -1,4 +1,4 @@
-#ZMQ PATTERN SAMPLEs
+# ZMQ PATTERN SAMPLEs
 
 1) PUSH-PULL sample 
     2 configurations: inproc and tcp. You can change the endpoint by just changing variable called ENDPOINT
@@ -6,9 +6,9 @@
     same as PUSH-PULL sample.
     You can set how many subs you want to create
    
-##PUB-SUB pattern
+## PUB-SUB pattern
 
-###PUBLISHER
+### PUBLISHER
 -It takes a specific configuration from a json file called "parameters.json" ,
 and pushes, on a specific topic, 12 bytes for the timestamp plus 
 the rest of the bytes (= bytes of config - bytes of timestamp)
